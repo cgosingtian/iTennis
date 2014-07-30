@@ -7,23 +7,145 @@
 //
 
 #import "KLBViewController.h"
+#import "KLBConstants.h"
 
-@interface KLBViewController ()
-
-@end
+//@interface KLBViewController ()
+//
+//@end
 
 @implementation KLBViewController
+
+@synthesize ball,
+            racketYellow,
+            racketGreen,
+            tapToBegin,
+            playerScore,
+            computerScore,
+            ballVelocity,
+            gameState;
+
+- (void)dealloc
+{
+    [super dealloc];
+    [ball release];
+    [racketYellow release];
+    [racketGreen release];
+    [playerScore release];
+    [tapToBegin release];
+    [computerScore release];
+}
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
+    
+    [self setGameState:KLB_GAME_STATE_PAUSED];
+    [self setBallVelocity:CGPointMake(KLB_BALL_SPEED_X, KLB_BALL_SPEED_Y)];
+    
+    [NSTimer scheduledTimerWithTimeInterval:0.05 target:self selector:@selector(gameLoop) userInfo:nil repeats:YES];
 }
 
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+- (void)gameLoop
+{
+    if (gameState == KLB_GAME_STATE_RUNNING)
+    {
+        [ball setCenter:CGPointMake([ball center].x + ballVelocity.x, [ball center].y + ballVelocity.y)];
+        
+        if ([ball center].x > [[self view] bounds].size.width || [ball center].x < 0)
+        {
+            ballVelocity.x = -ballVelocity.x;
+        }
+        
+        if ([ball center].y > [[self view] bounds].size.height || [ball center].y < 0)
+        {
+            ballVelocity.y = -ballVelocity.y;
+        }
+        
+        //collision detection
+        if (CGRectIntersectsRect([ball frame], [racketYellow frame]))
+        {
+            if ([ball center].y > [racketYellow center].y) // if ball in-front of racket
+            {
+                ballVelocity.y = -ballVelocity.y; //reverse Y aka hit it back
+            }
+        }
+        
+        if (CGRectIntersectsRect([ball frame], [racketGreen frame]))
+        {
+            if ([ball center].y < [racketGreen center].y) // if ball in-front of racket
+            {
+                ballVelocity.y = -ballVelocity.y; //reverse Y aka hit it back
+            }
+        }
+        
+        [self runBasicAI];
+    }
+    else
+    {
+        if ([tapToBegin isHidden])
+        {
+            [tapToBegin setHidden:NO];
+        }
+    }
+}
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    if ([self gameState] == KLB_GAME_STATE_PAUSED)
+    {
+        [tapToBegin setHidden:YES];
+        [self setGameState:KLB_GAME_STATE_RUNNING];
+    }
+    else if ([self gameState] == KLB_GAME_STATE_RUNNING)
+    {
+        [self touchesMoved:touches withEvent:event];
+    }
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    UITouch *touch = [[event allTouches] anyObject];
+    CGPoint location = [touch locationInView:[touch view]];
+    CGPoint xLocation = CGPointMake(location.x, [racketYellow center].y); //x of touch, but limit Y to racket Y
+    [racketYellow setCenter:xLocation];
+}
+
+#pragma mark - AI methods
+
+- (void)runBasicAI
+{
+    // just try to match the x coordinate of the ball, but throttle speed based on distance between ball and racket
+    CGFloat xDistance = [racketGreen center].x - [ball center].x;
+    
+    if ([racketGreen center].x > [ball center].x)
+    {
+        if (xDistance > KLB_COM_MOVE_SPEED)
+        {
+            [racketGreen setCenter:CGPointMake(([racketGreen center].x-KLB_COM_MOVE_SPEED), [racketGreen center].y)];
+        }
+        else
+        {
+            [racketGreen setCenter:CGPointMake(([racketGreen center].x-xDistance), [racketGreen center].y)];
+        }
+    }
+    else if ([racketGreen center].x < [ball center].x)
+    {
+        if (xDistance < KLB_COM_MOVE_SPEED)
+        {
+            [racketGreen setCenter:CGPointMake(([racketGreen center].x+KLB_COM_MOVE_SPEED), [racketGreen center].y)];
+        }
+        else
+        {
+            [racketGreen setCenter:CGPointMake(([racketGreen center].x+xDistance), [racketGreen center].y)];
+        }
+    }
 }
 
 @end
