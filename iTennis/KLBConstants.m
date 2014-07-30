@@ -14,6 +14,7 @@ const NSUInteger KLB_GAME_STATE_NEW_GAME = 3;
 const NSUInteger KLB_BALL_SPEED_X = 10;
 const NSUInteger KLB_BALL_SPEED_Y = 15;
 const NSUInteger KLB_COM_MOVE_SPEED = 10;
+const NSUInteger KLB_PLAYER_MOVE_SPEED = 10;
 const NSUInteger KLB_SCORE_TO_WIN = 5;
 
 @implementation KLBConstants

@@ -23,7 +23,9 @@
             computerScore,
             ballVelocity,
             gameState,
-            scored;
+            touchedLocation,
+            scored,
+            racketTouched;
 
 - (void)dealloc
 {
@@ -89,6 +91,8 @@
             }
         }
         
+        [self movePlayer];
+        
         [self runBasicAI];
         [self scoreUpdate];
     }
@@ -123,9 +127,64 @@
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
     UITouch *touch = [[event allTouches] anyObject];
-    CGPoint location = [touch locationInView:[touch view]];
-    CGPoint xLocation = CGPointMake(location.x, [racketYellow center].y); //x of touch, but limit Y to racket Y
-    [racketYellow setCenter:xLocation];
+    //CGPoint location = [touch locationInView:[touch view]];
+    touchedLocation = [touch locationInView:[touch view]];
+    //CGPoint xLocation = CGPointMake(location.x, [racketYellow center].y); //x of touch, but limit Y to racket Y
+    //[racketYellow setCenter:xLocation];
+    
+    racketTouched=true;
+}
+
+- (CGPoint)generateMoveTowardsCoordinates:(CGPoint)source WithDestination:(CGPoint)destination WithSpeed:(NSUInteger)speed YCoordinateLocked:(bool)yLock
+{
+    CGFloat xTowards = 0,
+            yTowards = 0;
+    if (destination.x > source.x)
+    {
+        xTowards = source.x + speed;
+        if (xTowards > destination.x)
+            xTowards = destination.x;
+    }
+    else
+    {
+        xTowards = source.x - speed;
+        if (xTowards < destination.x)
+            xTowards = destination.x;
+    }
+    
+    if (yLock)
+    {
+        yTowards = source.y;
+    }
+    else {
+        if (destination.y > source.y)
+        {
+            yTowards = source.y + speed;
+            if (yTowards > destination.y)
+                yTowards = destination.y;
+        }
+        else
+        {
+            yTowards = source.y - speed;
+            if (yTowards < destination.y)
+                yTowards = destination.y;
+        }
+    }
+    
+    return CGPointMake(xTowards, yTowards);
+}
+
+- (void)movePlayer
+{
+    if (racketTouched)
+    {
+        [racketYellow setCenter:[self generateMoveTowardsCoordinates:[racketYellow center] WithDestination:touchedLocation WithSpeed:KLB_PLAYER_MOVE_SPEED YCoordinateLocked:true]];
+        
+        if (CGPointEqualToPoint([racketYellow center], touchedLocation))
+        {
+            racketTouched=false;
+        }
+    }
 }
 
 #pragma mark - AI methods
