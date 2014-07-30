@@ -19,6 +19,8 @@
     
     CGPoint ballVelocity;
     NSInteger gameState;
+    
+    bool scored;
 }
 
 @property (nonatomic,retain) IBOutlet UIImageView *ball;
@@ -30,6 +32,8 @@
 
 @property (nonatomic) CGPoint ballVelocity;
 @property (nonatomic) NSInteger gameState;
+
+@property (nonatomic) bool scored;
 
 - (void)dealloc;
 

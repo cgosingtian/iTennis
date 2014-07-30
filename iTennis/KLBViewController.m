@@ -22,7 +22,8 @@
             playerScore,
             computerScore,
             ballVelocity,
-            gameState;
+            gameState,
+            scored;
 
 - (void)dealloc
 {
@@ -66,12 +67,14 @@
         if ([ball center].y > [[self view] bounds].size.height || [ball center].y < 0)
         {
             ballVelocity.y = -ballVelocity.y;
+            scored = false;
         }
         
         //collision detection
         if (CGRectIntersectsRect([ball frame], [racketYellow frame]))
         {
-            if ([ball center].y > [racketYellow center].y) // if ball in-front of racket
+//            if ([ball center].y > [racketYellow center].y) // if ball in-front of racket
+            if (ballVelocity.y > 0) // if ball is moving towards racket
             {
                 ballVelocity.y = -ballVelocity.y; //reverse Y aka hit it back
             }
@@ -79,13 +82,15 @@
         
         if (CGRectIntersectsRect([ball frame], [racketGreen frame]))
         {
-            if ([ball center].y < [racketGreen center].y) // if ball in-front of racket
+//            if ([ball center].y > [racketGreen center].y) // if ball in-front of racket
+            if (ballVelocity.y < 0) // if ball is moving towards racket
             {
                 ballVelocity.y = -ballVelocity.y; //reverse Y aka hit it back
             }
         }
         
         [self runBasicAI];
+        [self scoreUpdate];
     }
     else
     {
@@ -128,23 +133,47 @@
     {
         if (xDistance > KLB_COM_MOVE_SPEED)
         {
-            [racketGreen setCenter:CGPointMake(([racketGreen center].x-KLB_COM_MOVE_SPEED), [racketGreen center].y)];
+            [racketGreen setCenter:CGPointMake(([racketGreen center].x-[self difficultySpeedModify:KLB_COM_MOVE_SPEED]), [racketGreen center].y)];
         }
         else
         {
-            [racketGreen setCenter:CGPointMake(([racketGreen center].x-xDistance), [racketGreen center].y)];
+            [racketGreen setCenter:CGPointMake(([racketGreen center].x-[self difficultySpeedModify:xDistance]), [racketGreen center].y)];
         }
     }
     else if ([racketGreen center].x < [ball center].x)
     {
         if (xDistance < KLB_COM_MOVE_SPEED)
         {
-            [racketGreen setCenter:CGPointMake(([racketGreen center].x+KLB_COM_MOVE_SPEED), [racketGreen center].y)];
+            [racketGreen setCenter:CGPointMake(([racketGreen center].x+[self difficultySpeedModify:KLB_COM_MOVE_SPEED]), [racketGreen center].y)];
         }
         else
         {
-            [racketGreen setCenter:CGPointMake(([racketGreen center].x+xDistance), [racketGreen center].y)];
+            [racketGreen setCenter:CGPointMake(([racketGreen center].x+[self difficultySpeedModify:xDistance]), [racketGreen center].y)];
         }
+    }
+}
+
+-(float)difficultySpeedModify:(float)val //apply a random percentage reduction on the value
+{
+    NSLog(@"%f",(val - (val * (arc4random_uniform(25)/100.0))));
+    return (val - (val * (arc4random_uniform(25)/100.0)));
+}
+
+- (void)scoreUpdate
+{
+    if (!scored)
+    {
+        if ([ball center].y <= 0)
+        {
+            NSInteger p = [[playerScore text] intValue];
+            [playerScore setText:[NSString stringWithFormat:@"%d",++p]];
+        }
+        else if ([ball center].y >= [[UIScreen mainScreen] bounds].size.height)
+        {
+            NSInteger comp = [[computerScore text] intValue];
+            [computerScore setText:[NSString stringWithFormat:@"%d",++comp]];
+        }
+        scored = true;
     }
 }
 
