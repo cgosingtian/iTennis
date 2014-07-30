@@ -36,5 +36,14 @@
 @property (nonatomic) bool scored;
 
 - (void)dealloc;
+- (void)viewDidLoad;
+- (void)didReceiveMemoryWarning;
+- (void)gameLoop;
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event;
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event;
+- (void)runBasicAI;
+- (float)difficultySpeedModify:(float)val;
+- (void)scoreUpdate;
+- (void)endGameCheck:(BOOL)newGame;
 
 @end

@@ -94,7 +94,13 @@
     }
     else
     {
-        if ([tapToBegin isHidden])
+        if (gameState == KLB_GAME_STATE_NEW_GAME)
+        {
+            [ball setCenter:[[self view] center]];
+            [self setGameState:KLB_GAME_STATE_RUNNING];
+            [tapToBegin setHidden:YES];
+        }
+        else if ([tapToBegin isHidden])
         {
             [tapToBegin setHidden:NO];
         }
@@ -106,7 +112,7 @@
     if ([self gameState] == KLB_GAME_STATE_PAUSED)
     {
         [tapToBegin setHidden:YES];
-        [self setGameState:KLB_GAME_STATE_RUNNING];
+        [self setGameState:KLB_GAME_STATE_NEW_GAME];
     }
     else if ([self gameState] == KLB_GAME_STATE_RUNNING)
     {
@@ -155,8 +161,8 @@
 
 -(float)difficultySpeedModify:(float)val //apply a random percentage reduction on the value
 {
-    NSLog(@"%f",(val - (val * (arc4random_uniform(25)/100.0))));
-    return (val - (val * (arc4random_uniform(25)/100.0)));
+//    NSLog(@"%f",(val - (val * (arc4random_uniform(25)/100.0))));
+    return (val - (val * (arc4random_uniform(25)/100.0))); //35 is too easy
 }
 
 - (void)scoreUpdate
@@ -167,14 +173,41 @@
         {
             NSInteger p = [[playerScore text] intValue];
             [playerScore setText:[NSString stringWithFormat:@"%d",++p]];
+            [self endGameCheck:(p >= KLB_SCORE_TO_WIN)];
         }
         else if ([ball center].y >= [[UIScreen mainScreen] bounds].size.height)
         {
             NSInteger comp = [[computerScore text] intValue];
             [computerScore setText:[NSString stringWithFormat:@"%d",++comp]];
+            [self endGameCheck:(comp >= KLB_SCORE_TO_WIN)];
         }
         scored = true;
     }
+}
+
+- (void)endGameCheck:(BOOL)newGame
+{
+    if (newGame)
+    {
+        [self setGameState:KLB_GAME_STATE_PAUSED];
+        
+        if ([[playerScore text] intValue] > [[computerScore text] intValue])
+        {
+            [tapToBegin setText:[NSString stringWithFormat:@"Player wins! %d - %d",[[playerScore text] intValue],[[computerScore text] intValue]]];
+        }
+        else
+        {
+            [tapToBegin setText:[NSString stringWithFormat:@"Computer wins! %d - %d",[[computerScore text] intValue],[[playerScore text] intValue]]];
+        }
+        [playerScore setText:[NSString stringWithFormat:@"%d",0]];
+        [computerScore setText:[NSString stringWithFormat:@"%d",0]];
+    }
+//    else
+//    {
+//        [tapToBegin setText:@"Tap to begin!"];
+//        [self setGameState:KLB_GAME_STATE_PAUSED];
+//        [ball setCenter:[[self view] center]];
+//    }
 }
 
 @end
